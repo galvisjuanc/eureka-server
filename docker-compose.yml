@@ -1,0 +1,46 @@
+services:
+  eureka-server:
+    build: ./eureka-server # Ruta a la carpeta del proyecto
+    ports:
+      - "8761:8761"
+    networks:
+      - sistema-alquiler
+
+  ms-vehiculos:
+    build: ./ms-vehiculos
+    ports:
+      - "8081:8081"
+    environment:
+      # Sobrescribimos la URL de Eureka para que use el nombre del contenedor
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/alquiler_db # Para conectar al MySQL local
+    depends_on:
+      - eureka-server
+    networks:
+      - sistema-alquiler
+
+  ms-operaciones:
+    build: ./ms-operaciones
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+    networks:
+      - sistema-alquiler
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+    networks:
+      - sistema-alquiler
+
+networks:
+  sistema-alquiler:
+    driver: bridge
